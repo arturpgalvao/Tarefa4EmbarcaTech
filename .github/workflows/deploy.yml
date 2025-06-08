@@ -1,19 +1,15 @@
-# Nome do seu workflow
 name: Deploy to GitHub Pages
 
-# Gatilho: Roda em qualquer push para a branch 'main' (substitui o 'only: [main]')
 on:
   push:
     branches:
       - main
 
-# Permissões necessárias para o deploy
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Jobs (substitui os 'stages' do GitLab)
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,25 +17,26 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      # Passo 1: Clona o repositório
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Passo 2: Verifica se o arquivo existe (seu 'check_index')
+      # --- SEÇÃO CORRIGIDA ---
       - name: Check for index.html
-        run: test -f (public/index.html || exit 1)
+        run: |
+          if [ ! -f "public/index.html" ]; then
+            echo "Erro: O arquivo public/index.html não foi encontrado no diretório 'public'."
+            exit 1
+          fi
+      # --- FIM DA SEÇÃO CORRIGIDA ---
 
-      # Passo 3: Configura o ambiente do GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # Passo 4: Faz o upload da pasta 'public' (seu 'artifacts')
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./public
 
-      # Passo 5: Publica o conteúdo no GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
