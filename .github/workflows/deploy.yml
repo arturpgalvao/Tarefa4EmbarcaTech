@@ -1,56 +1,20 @@
-# Nome do seu workflow, que aparecerá na aba "Actions" do GitHub
-name: Deploy to GitHub Pages
-
-# Gatilho: Este workflow roda automaticamente em qualquer push para a branch 'main'
-on:
-  push:
-    branches:
-      - main
-
-# Permissões: Concede permissões para o workflow ler o conteúdo e escrever nas Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Jobs: Lista de tarefas a serem executadas
-jobs:
-  deploy:
-    # Configuração para que apenas um deploy rode por vez
-    concurrency:
-      group: "pages"
-      cancel-in-progress: true
-
-    # Define o ambiente de publicação (padrão do GitHub Pages)
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }} # Pega a URL final do site
-
-    # Define a máquina virtual que executará os comandos (Ubuntu é o padrão)
-    runs-on: ubuntu-latest
-
-    # Passos: A sequência de ações a serem executadas
-    steps:
-      # Passo 1: Clona o código do seu repositório para a máquina virtual
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      # Passo 2: Verifica a existência do index.html (se falhar, o pipeline para aqui)
-      - name: Check for index.html
-        run: test -f public/index.html || (echo "Erro: Arquivo public/index.html nao encontrado!" && exit 1)
-
-      # Passo 3: Configura o ambiente do GitHub Pages
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      # Passo 4: Transforma a pasta 'public' em um "artefato" para o deploy
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # O caminho para a pasta que será publicada
-          path: ./public
-
-      # Passo 5: Publica o artefato no GitHub Pages
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+stages:
+  - check
+  - deploy
+check_index:
+  stage: check
+  script:
+    - |
+      if [ ! -f public/index.html ]; then
+        echo "Erro: public/index.html não encontrado."
+        exit 1
+      fi
+pages:
+  stage: deploy
+  script:
+    - echo "Publicando página..."
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
